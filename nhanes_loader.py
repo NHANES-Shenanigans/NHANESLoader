@@ -4,8 +4,8 @@ import os
 import pandas
 import random
 import requests
+import shutil
 from bs4 import BeautifulSoup
-from tqdm import tqdm
 from urllib.parse import urlparse
 
 
@@ -24,7 +24,7 @@ def get_links(url, extensions):
     response = requests.get(url)
     contents = response.content
 
-    soup = BeautifulSoup(contents, "lxml")
+    soup = BeautifulSoup(contents, "html.parser")
     links = []
     for link in soup.findAll("a"):
         try:
@@ -61,12 +61,10 @@ def download_links(links, path_removal, output_directory):
         os.makedirs(new_directory, exist_ok=True)
         if not os.path.isfile(file_name):
             response = requests.get(link, stream=True)
-            with open(file_name, "wb") as handle:
-                for data in tqdm(response.iter_content()):
-                    handle.write(data)
-                handle.close()
+            with open(file_name, "wb") as file:
+                shutil.copyfileobj(response.raw, file, length=16*1024*1024)
         else:
-            print("Skipped file as already created")
+            print("Skipped file (already downloaded)")
 
 
 def download_url_links(url, extensions, path_removal, output_dir):
@@ -75,7 +73,7 @@ def download_url_links(url, extensions, path_removal, output_dir):
     download_links(links, path_removal, output_dir)
 
 
-def download_nhanes(components, years, default_url=True):
+def download_nhanes(components, years, destination, default_url=True):
     for year in years:
         for component in components:
             print("=" * 100)
@@ -99,15 +97,15 @@ def download_nhanes(components, years, default_url=True):
 
             links = [augment_url_with_site(link, url) for link in links]
             random.shuffle(links)
-            download_links(links, removal, os.environ["temp"])
+            download_links(links, removal, destination)
 
 
-def download_all_nhanes():
-    download_nhanes(["Demographics", "Dietary", "Examination", "Laboratory", "Questionnaire", "Non-Public"],
-                    ["1999", "2001", "2003", "2005", "2007", "2009", "2011", "2013", "2015", "2017"])
-    download_nhanes(["Questionnaires", "labmethods", "Manuals", "Documents", "overview", "releasenotes", "overviewlab",
-                     "overviewquex", "overviewexam"],
-                    ["1999", "2001", "2003", "2005", "2007", "2009", "2011", "2013", "2015", "2017"], default_url=False)
+# def download_all_nhanes():
+#     download_nhanes(["Demographics", "Dietary", "Examination", "Laboratory", "Questionnaire", "Non-Public"],
+#                     ["1999", "2001", "2003", "2005", "2007", "2009", "2011", "2013", "2015", "2017"])
+#     download_nhanes(["Questionnaires", "labmethods", "Manuals", "Documents", "overview", "releasenotes", "overviewlab",
+#                      "overviewquex", "overviewexam"],
+#                     ["1999", "2001", "2003", "2005", "2007", "2009", "2011", "2013", "2015", "2017"], default_url=False)
 
 
 def browse_directory_tables(directory, extensions=None):
@@ -174,7 +172,7 @@ def get_elements(sequence_numbers, columns, directory, attributes, num_files=0, 
     data[:] = numpy.NaN
 
     print("Loading Files")
-    count = 0
+    count = 1
     for root, directories, files in os.walk(directory):
         for file in files:
             if ".XPT" in file:
