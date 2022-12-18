@@ -5,26 +5,28 @@ import pandas
 import random
 import requests
 import shutil
+
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse
+from urllib.parse import urlparse, ParseResultBytes
+from requests import Response
 
 
-def get_url_base(url):
-    parsed_uri = urlparse(url)
+def get_url_base(url: bytes) -> str:
+    parsed_uri: ParseResultBytes = urlparse(url)
     return f"{parsed_uri.scheme}://{parsed_uri.netloc}"
 
 
-def augment_url_with_site(url, site, prefix="http"):
+def augment_url_with_site(url: str, site: bytes, prefix="http") -> str:
     if prefix not in url:
         url = get_url_base(site) + ("/" if url[0] != "/" else "") + url
     return url
 
 
-def get_links(url, extensions):
-    response = requests.get(url)
-    contents = response.content
+def get_links(url: str, extensions):
+    response: Response = requests.get(url)
+    contents: bytes = response.content
 
-    soup = BeautifulSoup(contents, "html.parser")
+    soup: BeautifulSoup = BeautifulSoup(contents, "html.parser")
     links = []
     for link in soup.findAll("a"):
         try:
@@ -36,13 +38,13 @@ def get_links(url, extensions):
     return links
 
 
-def remove_prefix(path, prefix):
+def remove_prefix(path: str, prefix: str):
     if path.startswith(prefix):
         return path[len(prefix):]
     return path
 
 
-def list_links(url, extensions=None):
+def list_links(url: str, extensions=None):
     if extensions is None:
         extensions = [""]
 
@@ -62,7 +64,7 @@ def download_links(links, path_removal, output_directory):
         if not os.path.isfile(file_name):
             response = requests.get(link, stream=True)
             with open(file_name, "wb") as file:
-                shutil.copyfileobj(response.raw, file, length=16*1024*1024)
+                shutil.copyfileobj(response.raw, file, length=16 * 1024 * 1024)
         else:
             print("Skipped file (already downloaded)")
 
