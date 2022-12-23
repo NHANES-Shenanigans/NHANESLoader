@@ -6,9 +6,9 @@ warnings.simplefilter(action='ignore', category=pandas.errors.PerformanceWarning
 
 
 test_list = ["THYROD", "CBC"]
-csv_file = "data.csv"
+csv_file = "NHANESLoader\\data\\data.csv"
 
-data_directory = "C:\\Users\\Toby\\PycharmProjects\\NHANESLoader\\data"
+data_directory = "NHANESLoader\\data"
 
 nhanes_loader.download_nhanes(["Laboratory"], ["2017"], data_directory)
 
