@@ -6,7 +6,7 @@ warnings.simplefilter(action='ignore', category=pandas.errors.PerformanceWarning
 
 
 test_list = ["THYROD", "CBC"]
-csv_file = "C:\\Users\\Toby\\PycharmProjects\\NHANESLoader\\data\\data.csv"
+csv_file = "data.csv"
 
 data_directory = "C:\\Users\\Toby\\PycharmProjects\\NHANESLoader\\data"
 
